@@ -579,6 +579,7 @@ void process_instruction(){
 /****************************************************************/
 /* HELPER METHODS												*/
 /****************************************************************/
+#define Low8bits(x) ( x & 0x00FF)
 
 /****************************************************************/
 /* loadWord - 	loads word (16 bit) from memory. This function 	*/
@@ -602,22 +603,37 @@ int loadWord(int address) {
 /* Input 	: address to load from in memory 					*/
 /* Ouput 	: the least significant byte stored at that address	*/
 /****************************************************************/
-#define Low8bits(x) ( x & 0x00FF)
 int loadLSByte(int address) {
 	assert(address%2 == 0);
 	return Low8bits( MEMORY[address >> 1][0] );
 }
 
 /****************************************************************/
-/* loadMSByte - loads most significnat byte from memory at the 	*/
-/*				given address									*/
-/*																*/
-/* Input 	: address to load from in memory 					*/
-/* Ouput 	: the most significant byte stored at that address	*/
+/* loadMSByte - loads most significnat byte from memory at the  */
+/*        given address                 */
+/*                                */
+/* Input  : address to load from in memory          */
+/* Ouput  : the most significant byte stored at that address  */
 /****************************************************************/
 int loadMSByte(int address) {
-	assert(address%2 == 0);
-	return Low8bits( MEMORY[address >> 1][1] );
+  assert(address%2 == 0);
+  return Low8bits( MEMORY[address >> 1][1] );
+}
+
+/****************************************************************/
+/* loadByte - loads byte from memory at the given address. The */
+/*        address can be aligned or unaligned                 */
+/*                                */
+/* Input  : address to load from in memory          */
+/* Ouput  : the most significant byte stored at that address  */
+/****************************************************************/
+int loadByte(int address) {
+  const int LSB_MASK = 0x0001;
+  if (address & LSB_MASK) { /* odd, unaligned */
+    return loadMSByte(address & ~LSB_MASK);
+  } else { /* even, aligned */
+    return loadLSByte(address);
+  }
 }
 
 /****************************************************************/
@@ -629,6 +645,43 @@ void storeWord(int address, int value) {
 	assert(address%2 == 0);
 	MEMORY[address>>1][1] = (value & 0x0000FF00) >> 8;
 	MEMORY[address>>1][0] = (value & 0x00FF);
+}
+
+/****************************************************************/
+/* storeLSByte - stores least byte into memory at the */
+/*        given address's least significant byte                 */
+/*                                */
+/* Input  : address to store to and byte to store      */
+/****************************************************************/
+int storeLSByte(int address, int byteVal) {
+  assert(address%2 == 0);
+  MEMORY[address >> 1][0] = Low8bits(byteVal);
+}
+
+/****************************************************************/
+/* storeMSByte - stores least byte into memory at the */
+/*        given address's most significant byte                 */
+/*                                */
+/* Input  : address to store to and byte to store      */
+/****************************************************************/
+int storeMSByte(int address, int byteVal) {
+  assert(address%2 == 0);
+  MEMORY[address >> 1][1] = Low8bits(byteVal);
+}
+
+/****************************************************************/
+/* storeByte - stores byte into memory at the given address. The */
+/*        address can be aligned or unaligned                 */
+/*                                */
+/* Input  : address to store to and byte to store          */
+/****************************************************************/
+int storeByte(int address, int byteVal) {
+  const int LSB_MASK = 0x0001;
+  if (address & LSB_MASK) { /* odd, unaligned */
+    storeMSByte(address & ~LSB_MASK, byteVal);
+  } else { /* even, aligned */
+    storeLSByte(address, byteVal);
+  }
 }
 
 /****************************************************************/
@@ -958,6 +1011,22 @@ void executeJSR(int opcode, int instruction) {
 /****************************************************************/
 void executeLDB(int opcode, int instruction) {	/* do we load least sig byte or most sig byte...???????????????????? */
 	printf("executing ldb\n");
+  /*
+    DR = SEXT(mem[BaseR + SEXT(boffset6)]);
+    setcc();
+  */
+  const int DR_MASK = 0x0E00;
+  const int BaseR_MASK = 0x01C0;
+  const int boffset6_MASK = 0x003F;
+
+  int dr = (instruction & DR_MASK) >> 9;
+  int baseR = (instruction & BaseR_MASK) >> 6;
+  int boffset6 = (instruction & boffset6_MASK);
+
+  int result = signExtend( loadByte( getRegisterValue(baseR) + signExtend(boffset6, 6) ), 8 );
+  setRegisterValue(dr, result);
+
+  setConditionCodes(result);
 }
 
 /****************************************************************/
@@ -1088,6 +1157,19 @@ void executeSHF(int opcode, int instruction) {
 /****************************************************************/
 void executeSTB(int opcode, int instruction) {	/* do we store least sig byte or most sig byte...???????????????????? */
 	printf("executing sdb\n");
+  /*
+    mem[BaseR + SEXT(boffset6)] = SR[7:0];
+  */
+  const int SR_MASK = 0x0E00;
+  const int BaseR_MASK = 0x01C0;
+  const int boffset6_MASK = 0x003F;
+
+  int sr = (SR_MASK & instruction) >> 9;
+  int baseR = (BaseR_MASK & instruction) >> 6;
+  int boffset6 = boffset6_MASK & instruction;
+
+  int address = getRegisterValue(baseR) + signExtend(boffset6, 6);
+  storeWord(address,getRegisterValue(sr));
 }
 
 /****************************************************************/
