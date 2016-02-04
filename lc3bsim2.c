@@ -714,9 +714,16 @@ void setRegisterValue(int registerNumber, int newValue) {
 /* Output 	: the sign extended value 							*/
 /****************************************************************/
 int signExtend(int valueToExtend, int lenInBits) {
-	const int MASK = 0xFFFF << lenInBits;
-	valueToExtend |= MASK;
-	return valueToExtend;
+  assert(lenInBits > 0  &&  lenInBits < 16);
+	const int BIT_MASK = 1 << (lenInBits - 1);
+
+  if (BIT_MASK & valueToExtend) { /* sign bit is 1 */
+    const int MASK = 0xFFFFFFFF << lenInBits;
+    return valueToExtend | MASK;
+  } else { /* sign bit is 0 */
+    const int MASK = 0xFFFFFFFF >> (16 - lenInBits);
+    return valueToExtend & MASK;
+  }
 }
 
 /****************************************************************/
