@@ -557,7 +557,21 @@ void executeXOR(int opcode, int instruction);
 *       -Execute
 *       -Update NEXT_LATCHES
 */  
+int temp = 0;
 void process_instruction(){   
+
+	if (!temp) {
+		MEMORY[0x4000>>1][0] = 0xaa;
+		MEMORY[0x4000>>1][1] = 0xbb;
+		MEMORY[0x4002>>1][0] = 0xcc;
+		MEMORY[0x4002>>1][1] = 0xdd;
+		MEMORY[0x4004>>1][0] = 0x1b;
+		MEMORY[0x4004>>1][1] = 0xff;
+		MEMORY[0x4006>>1][0] = 0xee;
+		MEMORY[0x4006>>1][1] = 0x99;
+		MEMORY[0x4008>>1][0] = 0x88;
+		temp = 1;
+	}
 
    int instruction, opcode;
 
@@ -789,7 +803,7 @@ void executeLogicOperation(int opcode, int instruction) {
 	/* perform operation */
 	int result;
 	if (opcode == ADD) {
-		result = Low16bits(firstParam + secondParam ); /* how do we handle overflow here???????????????????????????????? */
+		result = Low16bits(firstParam + secondParam );
 	}
 	if (opcode == AND) {
 		result = Low16bits( firstParam & secondParam );
@@ -854,7 +868,6 @@ int decodeOpcode(int instruction) {
 /*																*/
 /****************************************************************/
 void execute(int opcode, int instruction) {
-	printf("Currently, opcode: 0x%.1x    instruction: 0x%.4x   PC: 0x%.4x  \n",opcode,instruction,CURRENT_LATCHES.PC);
 
 	/* preincrement PC */
 	CURRENT_LATCHES.PC += 2;
@@ -930,7 +943,6 @@ void execute(int opcode, int instruction) {
 /* executeADD													*/
 /****************************************************************/
 void executeADD(int opcode, int instruction) {
-	printf("executing add\n");
 	/*
 		if (bit[5] == 0)
 			DR = SR1 + SR2;
@@ -945,7 +957,6 @@ void executeADD(int opcode, int instruction) {
 /* executeAND													*/
 /****************************************************************/
 void executeAND(int opcode, int instruction) {
-	printf("executing and\n");
 	/*
 		if (bit[5] == 0)
 			DR = SR1 AND SR2;
@@ -1016,8 +1027,7 @@ void executeJSR(int opcode, int instruction) {
 /****************************************************************/
 /* executeLDB													*/
 /****************************************************************/
-void executeLDB(int opcode, int instruction) {	/* do we load least sig byte or most sig byte...???????????????????? */
-	printf("executing ldb\n");
+void executeLDB(int opcode, int instruction) {
   /*
     DR = SEXT(mem[BaseR + SEXT(boffset6)]);
     setcc();
@@ -1040,7 +1050,6 @@ void executeLDB(int opcode, int instruction) {	/* do we load least sig byte or m
 /* executeLDW													*/
 /****************************************************************/
 void executeLDW(int opcode, int instruction) {
-	printf("executing ldw\n");
 	/*
 		DR = MEM[BaseR + LSHF(SEXT(offset6), 1)];
 		setcc();
@@ -1064,7 +1073,6 @@ void executeLDW(int opcode, int instruction) {
 /*	- should not set condition codes, as per Lab2's instructions*/
 /****************************************************************/
 void executeLEA(int opcode, int instruction) {
-	printf("executing lea\n");
 	/*
 		DR = PC + LSHF(SEXT(PCoffset9),1);
 	*/
@@ -1092,7 +1100,6 @@ void executeRTI(int opcode, int instruction) {
 /*	additional code 											*/
 /****************************************************************/
 void executeSHF(int opcode, int instruction) {
-	printf("executing shf\n");
 	/*
 		if (bit[4] == 0)
 			DR = LSHF(SR, amount4);
@@ -1162,8 +1169,7 @@ void executeSHF(int opcode, int instruction) {
 /****************************************************************/
 /* executeSTB													*/
 /****************************************************************/
-void executeSTB(int opcode, int instruction) {	/* do we store least sig byte or most sig byte...???????????????????? */
-	printf("executing sdb\n");
+void executeSTB(int opcode, int instruction) {
   /*
     mem[BaseR + SEXT(boffset6)] = SR[7:0];
   */
@@ -1176,14 +1182,13 @@ void executeSTB(int opcode, int instruction) {	/* do we store least sig byte or 
   int boffset6 = boffset6_MASK & instruction;
 
   int address = getRegisterValue(baseR) + signExtend(boffset6, 6);
-  storeWord(address,getRegisterValue(sr));
+  storeByte(address,getRegisterValue(sr));
 }
 
 /****************************************************************/
 /* executeSTW													*/
 /****************************************************************/
 void executeSTW(int opcode, int instruction) {
-	printf("executing sdw\n");
 	/*
 		MEM[BaseR + LSHF(SEXT(offset6), 1)] = SR;
 	*/
@@ -1203,7 +1208,6 @@ void executeSTW(int opcode, int instruction) {
 /* executeTRAP													*/
 /****************************************************************/
 void executeTRAP(int opcode, int instruction) {
-	printf("executing trap\n");
 	/*
 		R7 = PC;
 		PC = MEM[LSHF(ZEXT(trapvect8), 1)];
@@ -1219,7 +1223,6 @@ void executeTRAP(int opcode, int instruction) {
 /* executeXOR													*/
 /****************************************************************/
 void executeXOR(int opcode, int instruction) {
-	printf("executing xor\n");
 	/*
 		if (bit[5] == 0)
 			DR = SR1 XOR SR2;
