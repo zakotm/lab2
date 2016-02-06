@@ -607,6 +607,7 @@ void process_instruction(){
 /****************************************************************/
 int loadWord(int address) {
 	assert(address%2 == 0);
+	address = Low16bits(address);
 	return Low16bits( ( MEMORY[address>>1][1] << 8 ) + MEMORY[address>>1][0] );
 }
 
@@ -619,6 +620,7 @@ int loadWord(int address) {
 /****************************************************************/
 int loadLSByte(int address) {
 	assert(address%2 == 0);
+	address = Low16bits(address);
 	return Low8bits( MEMORY[address >> 1][0] );
 }
 
@@ -631,6 +633,7 @@ int loadLSByte(int address) {
 /****************************************************************/
 int loadMSByte(int address) {
   assert(address%2 == 0);
+  address = Low16bits(address);
   return Low8bits( MEMORY[address >> 1][1] );
 }
 
@@ -642,6 +645,7 @@ int loadMSByte(int address) {
 /* Ouput  : the most significant byte stored at that address  */
 /****************************************************************/
 int loadByte(int address) {
+  address = Low16bits(address);
   const int LSB_MASK = 0x0001;
   if (address & LSB_MASK) { /* odd, unaligned */
     return loadMSByte(address & ~LSB_MASK);
@@ -657,8 +661,9 @@ int loadByte(int address) {
 /****************************************************************/
 void storeWord(int address, int value) {
 	assert(address%2 == 0);
-	MEMORY[address>>1][1] = (value & 0x0000FF00) >> 8;
-	MEMORY[address>>1][0] = (value & 0x00FF);
+	address = Low16bits(address);
+	MEMORY[address>>1][1] = Low16bits((value & 0x0000FF00) >> 8);
+	MEMORY[address>>1][0] = Low16bits((value & 0x00FF));
 }
 
 /****************************************************************/
@@ -690,6 +695,8 @@ void storeMSByte(int address, int byteVal) {
 /* Input  : address to store to and byte to store          */
 /****************************************************************/
 void storeByte(int address, int byteVal) {
+  address = Low16bits(address);
+  byteVal = Low16bits(byteVal);
   const int LSB_MASK = 0x0001;
   if (address & LSB_MASK) { /* odd, unaligned */
     storeMSByte(address & ~LSB_MASK, byteVal);
@@ -706,7 +713,7 @@ void storeByte(int address, int byteVal) {
 /* Output 	: register value 									*/
 /****************************************************************/
 int getRegisterValue(int registerNumber) {
-	return CURRENT_LATCHES.REGS[registerNumber];
+	return Low16bits(CURRENT_LATCHES.REGS[registerNumber]);
 }
 
 /****************************************************************/
@@ -716,7 +723,7 @@ int getRegisterValue(int registerNumber) {
 /* Input 	: register number and new value						*/
 /****************************************************************/
 void setRegisterValue(int registerNumber, int newValue) {
-	NEXT_LATCHES.REGS[registerNumber] = newValue;
+	NEXT_LATCHES.REGS[registerNumber] = Low16bits(newValue);
 }
 
 /****************************************************************/
@@ -729,14 +736,14 @@ void setRegisterValue(int registerNumber, int newValue) {
 /****************************************************************/
 int signExtend(int valueToExtend, int lenInBits) {
   assert(lenInBits > 0  &&  lenInBits < 16);
-	const int BIT_MASK = 1 << (lenInBits - 1);
+  const int BIT_MASK = 1 << (lenInBits - 1);
 
   if (BIT_MASK & valueToExtend) { /* sign bit is 1 */
     const int MASK = 0xFFFFFFFF << lenInBits;
-    return valueToExtend | MASK;
+    return Low16bits(valueToExtend | MASK);
   } else { /* sign bit is 0 */
     const int MASK = 0xFFFFFFFF >> (16 - lenInBits);
-    return valueToExtend & MASK;
+    return Low16bits(valueToExtend & MASK);
   }
 }
 
