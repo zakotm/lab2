@@ -481,7 +481,7 @@ void executeADD(int opcode, int instruction);
 void executeAND(int opcode, int instruction);
 
 /****************************************************************/
-/* executeBR
+/* executeBR													*/
 /****************************************************************/
 void executeBR(int opcode, int instruction);
 
@@ -667,7 +667,7 @@ void storeWord(int address, int value) {
 /*                                */
 /* Input  : address to store to and byte to store      */
 /****************************************************************/
-int storeLSByte(int address, int byteVal) {
+void storeLSByte(int address, int byteVal) {
   assert(address%2 == 0);
   MEMORY[address >> 1][0] = Low8bits(byteVal);
 }
@@ -678,7 +678,7 @@ int storeLSByte(int address, int byteVal) {
 /*                                */
 /* Input  : address to store to and byte to store      */
 /****************************************************************/
-int storeMSByte(int address, int byteVal) {
+void storeMSByte(int address, int byteVal) {
   assert(address%2 == 0);
   MEMORY[address >> 1][1] = Low8bits(byteVal);
 }
@@ -689,7 +689,7 @@ int storeMSByte(int address, int byteVal) {
 /*                                */
 /* Input  : address to store to and byte to store          */
 /****************************************************************/
-int storeByte(int address, int byteVal) {
+void storeByte(int address, int byteVal) {
   const int LSB_MASK = 0x0001;
   if (address & LSB_MASK) { /* odd, unaligned */
     storeMSByte(address & ~LSB_MASK, byteVal);
@@ -968,7 +968,7 @@ void executeAND(int opcode, int instruction) {
 }
 
 /****************************************************************/
-/* executeBR
+/* executeBR													*/
 /****************************************************************/
 void executeBR(int opcode, int instruction) {
 	/*
@@ -1016,7 +1016,7 @@ void executeJSR(int opcode, int instruction) {
 	const int BaseR_MASK = 0x01C0;
 	const int PCoffset11_MASK = 0x07FF;
 	setRegisterValue(7, CURRENT_LATCHES.PC);
-	if (BIT_MASK & instruction  ==  0) {
+	if ((BIT_MASK & instruction)  ==  0) {
 		int baseR = (BaseR_MASK & instruction) >> 6;
 		NEXT_LATCHES.PC = getRegisterValue(baseR);
 	} else {
