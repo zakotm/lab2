@@ -560,19 +560,6 @@ void executeXOR(int opcode, int instruction);
 int temp = 0;
 void process_instruction(){   
 
-	if (!temp) {
-		MEMORY[0x4000>>1][0] = 0xaa;
-		MEMORY[0x4000>>1][1] = 0xbb;
-		MEMORY[0x4002>>1][0] = 0xcc;
-		MEMORY[0x4002>>1][1] = 0xdd;
-		MEMORY[0x4004>>1][0] = 0x1b;
-		MEMORY[0x4004>>1][1] = 0xff;
-		MEMORY[0x4006>>1][0] = 0xee;
-		MEMORY[0x4006>>1][1] = 0x99;
-		MEMORY[0x4008>>1][0] = 0x88;
-		temp = 1;
-	}
-
    int instruction, opcode;
 
    /* fetch instruction */
