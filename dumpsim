@@ -1,9 +1,16 @@
 
-Memory content [0x4000..0x4008] :
+Current register/bus values :
 -------------------------------------
- 0x4000 (16384) : 0xbbaa
- 0x4002 (16386) : 0xddcc
- 0x4004 (16388) : 0xaae4
- 0x4006 (16390) : 0xccbb
- 0x4008 (16392) : 0x00dd
+Instruction Count : 28
+PC                : 0x0000
+CCs: N = 0  Z = 1  P = 0
+Registers:
+0: 0x0000
+1: 0x0000
+2: 0x0000
+3: 0x0000
+4: 0x0000
+5: 0x0000
+6: 0x0000
+7: 0x1038
 

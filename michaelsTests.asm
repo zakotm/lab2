@@ -1,0 +1,46 @@
+
+
+		.ORIG x1000
+
+
+
+		LEA R0, JUMPTO
+		JMP R0
+
+
+TEST1		ADD R0, R0, x9
+		AND R0, R0, x1
+		ADD R0, R0, #-1
+		XOR R0, R0, #1
+		NOT R0, R0
+		NOT R0, R0
+		XOR, R0, R0, R0
+		RET
+
+
+JUMPTO		JSR TEST1
+		LEA R6, TEST2
+		JSRR R6
+		AND R6, R6, #0
+		BRnzp GOTOHALT	
+
+
+TEST2		ADD R1, R1, #-1
+		LSHF R1, R1, #3
+		AND R2, R1, x7
+		BRnp GOTOHALT
+		RSHFL R1, R1, #5
+		BRn GOTOHALT
+		AND R1, R1, #0
+		ADD R1, R1, #-1
+		RSHFA R1, R1, #8
+		BRzp GOTOHALT
+		AND R1, R1, #0
+		RET
+
+
+GOTOHALT	HALT
+
+
+
+		.END

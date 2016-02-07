@@ -8,13 +8,13 @@ echo
 # Assemble
 echo "******************Assembling*****************"
 #./assembler.linux sourcecode.asm objectfile.obj
-./assembler.linux sourcecode.asm objectfile.obj
+./assembler.linux michaelsTests.asm michaelsobjectfile.obj
 echo "*********************************************"
 echo
 
 # Run
 echo "*******************Running*******************"
-./program.out objectfile.obj
+./program.out michaelsobjectfile.obj
 echo "*********************************************"
 echo
 

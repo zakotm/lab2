@@ -744,14 +744,16 @@ void setConditionCodes(int resultVal) {
 	int newN, newZ, newP;
 	newN = newZ = newP = 0;
 
-	if (resultVal > 0) {
-		newP = 1;
-	}
-	if (resultVal < 0) {
+	resultVal = Low16bits(resultVal);
+	const int MSB_MASK = 0x00008000;
+	int msb = MSB_MASK & resultVal;
+
+	if (msb) { /* negative */
 		newN = 1;
-	}
-	if (resultVal == 0) {
+	} else if (resultVal == 0) { /* zero */
 		newZ = 1;
+	} else { /* positive */
+		newP = 1;
 	}
 
 	NEXT_LATCHES.N = newN;
