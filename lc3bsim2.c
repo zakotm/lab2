@@ -877,7 +877,7 @@ int decodeOpcode(int instruction) {
 void execute(int opcode, int instruction) {
 
 	/* preincrement PC */
-	CURRENT_LATCHES.PC += 2;
+	CURRENT_LATCHES.PC = Low16bits(CURRENT_LATCHES.PC + 2);
 	NEXT_LATCHES.PC = CURRENT_LATCHES.PC;
 
 	/* delegate execution to correct funtion */
@@ -991,7 +991,7 @@ void executeBR(int opcode, int instruction) {
 	int p = p_MASK & instruction;
 
 	if ( ( n && CURRENT_LATCHES.N )  ||  ( z && CURRENT_LATCHES.Z )  ||  ( p && CURRENT_LATCHES.P ) ) {
-		NEXT_LATCHES.PC = CURRENT_LATCHES.PC + ( signExtend(PCoffset9_MASK & instruction, 9) << 1 );
+		NEXT_LATCHES.PC = Low16bits( CURRENT_LATCHES.PC + ( signExtend(PCoffset9_MASK & instruction, 9) << 1 ) );
 	}
 }
 
@@ -1005,7 +1005,7 @@ void executeJMP(int opcode, int instruction) {
 	const int BaseR_MASK = 0x01C0;
 	int baseR = (BaseR_MASK & instruction) >> 6;
 	int regVal = getRegisterValue(baseR);
-	NEXT_LATCHES.PC = regVal;
+	NEXT_LATCHES.PC = Low16bits( regVal );
 }
 
 /****************************************************************/
@@ -1025,9 +1025,9 @@ void executeJSR(int opcode, int instruction) {
 	setRegisterValue(7, CURRENT_LATCHES.PC);
 	if ((BIT_MASK & instruction)  ==  0) {
 		int baseR = (BaseR_MASK & instruction) >> 6;
-		NEXT_LATCHES.PC = getRegisterValue(baseR);
+		NEXT_LATCHES.PC = Low16bits( getRegisterValue(baseR) );
 	} else {
-		NEXT_LATCHES.PC = CURRENT_LATCHES.PC + (signExtend(instruction & PCoffset11_MASK, 11) << 1);
+		NEXT_LATCHES.PC = Low16bits( CURRENT_LATCHES.PC + (signExtend(instruction & PCoffset11_MASK, 11) << 1) );
 	}
 }
 
@@ -1086,7 +1086,7 @@ void executeLEA(int opcode, int instruction) {
 	const int DR_MASK = 0x0E00;
 	const int PCoffset11_MASK = 0x01FF;
 
-	int result = CURRENT_LATCHES.PC + ( signExtend(PCoffset11_MASK & instruction, 9) << 1 );
+	int result = Low16bits( CURRENT_LATCHES.PC + ( signExtend(PCoffset11_MASK & instruction, 9) << 1 ) );
 
 	int dr = (DR_MASK & instruction) >> 9;
 	setRegisterValue(dr, result);
@@ -1223,7 +1223,7 @@ void executeTRAP(int opcode, int instruction) {
 	int trapvect8 = trapvect8_MASK & instruction; /* this zero extends trapvector8 */
 
 	setRegisterValue(7, CURRENT_LATCHES.PC);
-	NEXT_LATCHES.PC = loadWord( trapvect8 << 1 );
+	NEXT_LATCHES.PC = Low16bits( loadWord( trapvect8 << 1 ) );
 }
 
 /****************************************************************/
