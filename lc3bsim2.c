@@ -773,11 +773,24 @@ void setConditionCodes(int resultVal) {
 }
 
 /****************************************************************/
-/* terminate -	ends the program 								*/
+/* setBit -	sets the specified bit with the specified value and */
+/*			returns the changed integer							*/
 /*																*/
+/* Input 	: The integer to change, the bit number to change, 	*/
+/*				and the value to change to 						*/
+/* Output 	: The changed integer								*/
 /****************************************************************/
-void terminate() {
-	assert(FALSE);
+int setBit(int integer, int bitNum, int bitVal) {
+	assert(bitVal==0 || bitVal==1);
+	assert(bitNum<16 && bitNum>=0);
+
+	const int MASK = 1 << bitNum;
+
+	if (bitVal) {
+		return integer | MASK;
+	} else {
+		return integer & (~MASK);
+	}
 }
 
 /****************************************************************/
@@ -940,8 +953,8 @@ void execute(int opcode, int instruction) {
 		break;
 
 		default:
-			terminate();
 			printf("ERROR: Opcode 0x%.1x not in use\n", opcode);
+			assert(FALSE);
 		break;
 	}
 }
@@ -1132,43 +1145,27 @@ void executeSHF(int opcode, int instruction) {
 		result = getRegisterValue(sr) << amount4;
 
 	} else { /* right shift */
+		int valueToShift = getRegisterValue(sr);
 
-		if ( !(TYPE_BIT_MASK & instruction) ) { /* logical, 0 */
-
-			/* calculate mask of length amount4 for logical shift */
-			int LOGICAL_MASK = 0;
-			if (amount4 < 15) {
-				LOGICAL_MASK |= (1 << (15 - amount4 - 1));
-			}
-
-			result = ( getRegisterValue(sr) >> amount4 )  &  LOGICAL_MASK;
-
-		} else { /* arithmetic, SR[15] */
-			const int SR15_MASK = 0x00008000;
-
-			int sr15 = SR15_MASK & getRegisterValue(sr);
-			if (sr15) { /* sr15 is a 1 */
-				
-				/* calculate mask of length amount4 for arithmetic shift */
-				int ARITHMETIC_MASK = 1;
-				if (amount4 < 15) {
-					ARITHMETIC_MASK &= (0xFFF7 << (15 - amount4 -1));
-				}
-
-				result = ( getRegisterValue(sr) >> amount4) | ARITHMETIC_MASK;
-
-			} else { /* sr15 is a 0 */
-
-				/* calculate mask of length amount4 for arithmetic shift */
-				int ARITHMETIC_MASK = 0;
-				if (amount4 < 15) {
-					ARITHMETIC_MASK |= (1 << (15 - amount4 - 1));
-				}
-
-				result = ( getRegisterValue(sr) >> amount4 )  &  ARITHMETIC_MASK;
-			}
+		/* select 1 or 0 to extend infront of shift */
+		const int BIT_15_MASK = 0x00008000;
+		int bitToExtend;
+		if ( !(TYPE_BIT_MASK & instruction)  ||  !(BIT_15_MASK & valueToShift) ) { /* logical, or arithmetic and SR[15]==0 */
+			bitToExtend = 0;
+		} else { /* arithmetic and SR[15]==1 */
+			bitToExtend = 1;
 		}
+
+		/* shift */
+		int i;
+		for (i = 0; i < amount4; i++) {
+			valueToShift >>= 1;
+			valueToShift = setBit(valueToShift, 15, bitToExtend);
+		}
+
+		result = Low16bits(valueToShift);
 	}
+
 	setRegisterValue(dr, result);
 	setConditionCodes(result);
 }
