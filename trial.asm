@@ -14,14 +14,19 @@
     RSHFA R7, R0, #3
     XOR R7, R1, R0
     XOR R7, R1, x2
+
+
     LEA R3, A
+    LDW R3, R3, #0
     LEA R4, Y
+    LDW R4, R4, #0
+
     STB R3, R4, #0
     STW R3, R4, #1
     LDB R0, R4, #0
     LDW R1, R4, #1
     HALT
-Y	.FILL x2000
-A	.FILL x1234
+A	.FILL x1272
+Y	.FILL x1234
 	.END
 
