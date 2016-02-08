@@ -1,7 +1,7 @@
 
 Current register/bus values :
 -------------------------------------
-Instruction Count : 28
+Instruction Count : 55
 PC                : 0x0000
 CCs: N = 0  Z = 1  P = 0
 Registers:
@@ -12,5 +12,5 @@ Registers:
 4: 0x0000
 5: 0x0000
 6: 0x0000
-7: 0x1038
+7: 0x103c
 
